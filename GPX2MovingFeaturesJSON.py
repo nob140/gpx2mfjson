@@ -46,7 +46,7 @@ def GPX2MovingFeaturesJSON(inputfile, outputfile):
     json.dump(FeatureCollection(features), json_file, indent=2)
     json_file.close()
 
-# converter considering epsilon
+# converter function considering epsilon
 # delete middle point of 3 same points by checking 'distance < epsilon'
 def GPX2MovingFeaturesJSON2(inputfile, outputfile, epsilon):
     gpx_file = open(inputfile, 'r')
@@ -58,10 +58,13 @@ def GPX2MovingFeaturesJSON2(inputfile, outputfile, epsilon):
     for track in gpx.tracks:
         tracknum += 1
 
-        # making lists for easy calculation
+        # making lists without invalid points
         lats, lons, elevs, times = [], [], [], []
         for segment in track.segments:
             for point in segment.points:
+                if point.latitude is None or point.longitude is None or point.elevation is None or point.time is None:
+                    #print('invalid point')
+                    continue
                 lats.append(point.latitude)
                 lons.append(point.longitude)
                 elevs.append(point.elevation)
@@ -69,16 +72,6 @@ def GPX2MovingFeaturesJSON2(inputfile, outputfile, epsilon):
 
         # check same 3 points
         for index in range(len(lats)-2):
-            if lats[index+1] is None or lons[index+1] is None or elevs[index+1] is None:
-                # invalid point flag
-                times[index+1] = None
-                continue
-
-            if lats[index] is None or lons[index] is None or elevs[index] is None:
-                continue
-            if lats[index+2] is None or lons[index+2] is None or elevs[index+2] is None:
-                continue
-
             # check horizontal distance
             if abs(lats[index] - lats[index+1]) > epsilon or abs(lats[index+1] - lats[index+2]) > epsilon:
                 continue
@@ -88,12 +81,11 @@ def GPX2MovingFeaturesJSON2(inputfile, outputfile, epsilon):
             # unnecessary point flag
             times[index+1] = None
         
-        # develop feature with linestring of valid points
+        # feature by linestring geometry with only valid points
         coordinates = []
         timestrs = []
         for index in range(len(lats)):
-            if lats[index] is None or lons[index] is None or elevs[index] is None or times[index] is None:
-                print('invalid/unnecessary point: '+str(index))
+            if times[index] is None:
                 continue
 
             coordinates.append([lats[index], lons[index], elevs[index]])
