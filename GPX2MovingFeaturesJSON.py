@@ -10,9 +10,8 @@ def error(text):
 	print(text)
 	sys.exit()
 
-# epsilon is not yet implemented now.
-# same points should be deleted by checking 'distance < epsilon'
-def GPX2MovingFeaturesJSON(inputfile, outputfile, epsilon):
+# simple converter function from GPX to OGC Moving Features JSON
+def GPX2MovingFeaturesJSON(inputfile, outputfile):
     gpx_file = open(inputfile, 'r')
     gpx = gpxpy.parse(gpx_file)
 
@@ -47,9 +46,71 @@ def GPX2MovingFeaturesJSON(inputfile, outputfile, epsilon):
     json.dump(FeatureCollection(features), json_file, indent=2)
     json_file.close()
 
+# converter considering epsilon
+# delete middle point of 3 same points by checking 'distance < epsilon'
+def GPX2MovingFeaturesJSON2(inputfile, outputfile, epsilon):
+    gpx_file = open(inputfile, 'r')
+    gpx = gpxpy.parse(gpx_file)
+
+    features = []
+    tracknum = 0
+
+    for track in gpx.tracks:
+        tracknum += 1
+
+        # making lists for easy calculation
+        lats, lons, elevs, times = [], [], [], []
+        for segment in track.segments:
+            for point in segment.points:
+                lats.append(point.latitude)
+                lons.append(point.longitude)
+                elevs.append(point.elevation)
+                times.append(point.time)
+
+        # check same 3 points
+        for index in range(len(lats)-2):
+            if lats[index+1] is None or lons[index+1] is None or elevs[index+1] is None:
+                # invalid point flag
+                times[index+1] = None
+                continue
+
+            if lats[index] is None or lons[index] is None or elevs[index] is None:
+                continue
+            if lats[index+2] is None or lons[index+2] is None or elevs[index+2] is None:
+                continue
+
+            # check horizontal distance
+            if abs(lats[index] - lats[index+1]) > epsilon or abs(lats[index+1] - lats[index+2]) > epsilon:
+                continue
+            if abs(lons[index] - lons[index+1]) > epsilon or abs(lons[index+1] - lons[index+2]) > epsilon:
+                continue
+
+            # unnecessary point flag
+            times[index+1] = None
+        
+        # develop feature with linestring of valid points
+        coordinates = []
+        timestrs = []
+        for index in range(len(lats)):
+            if lats[index] is None or lons[index] is None or elevs[index] is None or times[index] is None:
+                print('invalid/unnecessary point: '+str(index))
+                continue
+
+            coordinates.append([lats[index], lons[index], elevs[index]])
+            timestrs.append(times[index].strftime('%Y-%m-%dT%H:%M:%S%z'))
+    
+        feature = Feature(id='Route'+str(tracknum), geometry= LineString(coordinates= coordinates, precision=15), properties= {'datetime':timestrs})
+        features.append(feature)
+
+    gpx_file.close()
+
+    json_file = open(outputfile, mode="w")
+    json.dump(FeatureCollection(features), json_file, indent=2)
+    json_file.close()
+
 
 if __name__ == '__main__':
-    usage = 'Usage: python {} INPUT_FILE OUTPUT_FILE EPSILON'.format(__file__)
+    usage = 'Usage: python {} INPUT_FILE OUTPUT_FILE [EPSILON]'.format(__file__)
     arguments = sys.argv
     if len(arguments) < 3:
         error(usage)
@@ -63,8 +124,6 @@ if __name__ == '__main__':
         error(inputfile + " is not file.")
 
     if len(arguments) == 3:
-        epsilon = 0.0
+        GPX2MovingFeaturesJSON(inputfile, arguments[2])
     else:
-        epsilon = float(arguments[3])
-
-    GPX2MovingFeaturesJSON(inputfile, arguments[2], epsilon)
+        GPX2MovingFeaturesJSON2(inputfile, arguments[2], float(arguments[3]))
