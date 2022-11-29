@@ -1,5 +1,5 @@
 # GPX2MovingFeaturesJSON
-Converter from GXP to OGC Moving Features JSON
+Converter from GXP to OGC Moving Features JSON (Trajectory encoding)
 
 Usage: python GPX2MovingFeaturesJSON.py input.GPX output.json
 
