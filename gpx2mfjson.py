@@ -11,7 +11,7 @@ def error(text):
 	sys.exit()
 
 # simple converter function from GPX to OGC Moving Features JSON
-def gpx2mfjson(inputfile, outputfile):
+def gpx2mfjson2(inputfile, outputfile):
     gpx_file = open(inputfile, 'r')
     gpx = gpxpy.parse(gpx_file)
 
@@ -48,7 +48,7 @@ def gpx2mfjson(inputfile, outputfile):
 
 # converter function considering epsilon
 # delete middle point of 3 same points by checking 'distance < epsilon'
-def gpx2mfjson(inputfile, outputfile, epsilon):
+def gpx2mfjson3(inputfile, outputfile, epsilon):
     gpx_file = open(inputfile, 'r')
     gpx = gpxpy.parse(gpx_file)
 
@@ -116,6 +116,6 @@ if __name__ == '__main__':
         error(inputfile + " is not file.")
 
     if len(arguments) == 3:
-        gpx2mfjson(inputfile, arguments[2])
+        gpx2mfjson2(inputfile, arguments[2])
     else:
-        gpx2mfjson(inputfile, arguments[2], float(arguments[3]))
+        gpx2mfjson3(inputfile, arguments[2], float(arguments[3]))
