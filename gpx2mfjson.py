@@ -32,7 +32,7 @@ def gpx2mfjson2(inputfile, outputfile):
                     print('invalid timestamp')
                     continue
 
-                coordinates.append([point.latitude, point.longitude, point.elevation])
+                coordinates.append([point.longitude, point.latitude, point.elevation])
 
                 dtime = point.time
                 times.append(dtime.strftime('%Y-%m-%dT%H:%M:%S%z'))
@@ -88,7 +88,7 @@ def gpx2mfjson3(inputfile, outputfile, epsilon):
             if times[index] is None:
                 continue
 
-            coordinates.append([lats[index], lons[index], elevs[index]])
+            coordinates.append([lons[index], lats[index], elevs[index]])
             timestrs.append(times[index].strftime('%Y-%m-%dT%H:%M:%S%z'))
     
         feature = Feature(id='Route'+str(tracknum), geometry= LineString(coordinates= coordinates, precision=15), properties= {'datetime':timestrs})
