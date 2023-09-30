@@ -12,7 +12,7 @@ pip install gpxpy
 ```
 python.exe gpx2mfjson.py input.GPX output.json [EPSILON]
 ```
-EPSILON: for checking duplicated points (i.e. 0.0000001)
+EPSILON: for checking duplicated points (i.e. 0.000001)
 
 
 ## Note
